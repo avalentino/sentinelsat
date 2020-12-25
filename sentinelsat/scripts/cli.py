@@ -9,6 +9,7 @@ import requests.utils
 from sentinelsat import __version__ as sentinelsat_version
 from sentinelsat.sentinel import SentinelAPI, geojson_to_wkt, read_geojson, placename_to_wkt
 from sentinelsat.exceptions import InvalidKeyError
+from sentinelsat.advanced import AdvancedSentinelAPI, make_path_filter
 
 logger = logging.getLogger("sentinelsat")
 
@@ -152,6 +153,19 @@ class CommaSeparatedString(click.ParamType):
     is_flag=True,
     help="Print debug log messages.",
 )
+@click.option(
+    "--include-pattern",
+    default=None,
+    help="""Glob pattern to filter files (within each product) to be downloaded.
+    """,
+)
+@click.option(
+    "--exclude-pattern",
+    default=None,
+    help="""Glob pattern to filter files (within each product) to be excluded
+    from the downloaded.
+    """,
+)
 @click.option("--info", is_flag=True, is_eager=True, help="Displays the DHuS version used")
 @click.version_option(version=sentinelsat_version, prog_name="sentinelsat")
 def cli(
@@ -176,6 +190,8 @@ def cli(
     location,
     limit,
     debug,
+    include_pattern,
+    exclude_pattern,
     info,
 ):
     """Search for Sentinel products and, optionally, download all the results
@@ -186,6 +202,15 @@ def cli(
     """
 
     _set_logger_handler("DEBUG" if debug else "INFO")
+
+    if include_pattern is not None and exclude_pattern is not None:
+        raise click.UsageError("--include-pattern and --exclude-pattern cannot be specified together.")
+    elif include_pattern is not None:
+        nodefilter = make_path_filter(include_pattern)
+    elif exclude_pattern is not None:
+        nodefilter = make_path_filter(exclude_pattern, exclude=True)
+    else:
+        nodefilter = None
 
     if user is None or password is None:
         try:
@@ -199,7 +224,7 @@ def cli(
             "for environment variables and .netrc support."
         )
 
-    api = SentinelAPI(user, password, url)
+    api = AdvancedSentinelAPI(user, password, url, nodefilter=nodefilter)
 
     if info:
         ctx = click.get_current_context()
