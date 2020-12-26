@@ -12,6 +12,9 @@ Added
 * Added seraching by placenames with the CLI flag ``--location`` (#372 @thomasyoung-audet)
 * Download quicklooks directly with the CLI flag ``--quicklook`` (#361 @mackland)
 * Added ``setinelsat/__main__.py`` (#412 @avalentino)
+* New ``sentinelsat/advanced.py`` module providing an "advanced" API that
+  allows to filter and download only selected files of the requested products
+  (#414 @avalentino)
 
 Changed
 ~~~~~~~
