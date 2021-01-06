@@ -7,9 +7,9 @@ import geojson as gj
 import requests.utils
 
 from sentinelsat import __version__ as sentinelsat_version
-from sentinelsat.sentinel import SentinelAPI, geojson_to_wkt, read_geojson, placename_to_wkt
+from sentinelsat.sentinel import geojson_to_wkt, read_geojson, placename_to_wkt
 from sentinelsat.exceptions import InvalidKeyError
-from sentinelsat.advanced import AdvancedSentinelAPI, make_path_filter
+from sentinelsat.products import SentinelProductsAPI, make_path_filter
 
 logger = logging.getLogger("sentinelsat")
 
@@ -226,7 +226,7 @@ def cli(
             "for environment variables and .netrc support."
         )
 
-    api = AdvancedSentinelAPI(user, password, url)
+    api = SentinelProductsAPI(user, password, url)
 
     if info:
         ctx = click.get_current_context()
