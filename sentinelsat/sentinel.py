@@ -544,7 +544,7 @@ class SentinelAPI:
         _check_scihub_response(r)
         return r.json()
 
-    def download(self, id, directory_path=".", checksum=True):
+    def download(self, id, directory_path=".", checksum=True, **kwargs):
         """Download a product.
 
         Uses the filename on the server for the downloaded file, e.g.
@@ -573,6 +573,10 @@ class SentinelAPI:
         ------
         InvalidChecksumError
             If the MD5 checksum does not match the checksum on the server.
+
+
+        .. versionchanged:: 0.15
+           Added ``**kwargs`` parameter to allow easier specialization of the :class:`SentinelAPI` lcass.
         """
         product_info = self.get_product_odata(id)
         path = join(directory_path, product_info["title"] + ".zip")
@@ -683,6 +687,7 @@ class SentinelAPI:
         checksum=True,
         n_concurrent_dl=2,
         lta_retry_delay=600,
+        **kwargs,
     ):
         """Download a list of products.
 
@@ -712,6 +717,8 @@ class SentinelAPI:
             number of concurrent downloads
         lta_retry_delay : integer
             how long to wait between requests to the long term archive. Default is 600 seconds.
+        **kwargs :
+            additional parameters for the *download* method
 
         Raises
         ------
@@ -728,6 +735,10 @@ class SentinelAPI:
         dict[string, dict]
             A dictionary containing the product information of products where either
             downloading or triggering failed
+
+
+        .. versionchanged:: 0.15
+           Added ``**kwargs`` parameter to allow easier specialization of the :class:`SentinelAPI` lcass.
         """
 
         product_ids = list(products)
@@ -769,6 +780,7 @@ class SentinelAPI:
                         directory_path,
                         checksum,
                         max_attempts=max_attempts,
+                        **kwargs
                     )
                 )
 
@@ -859,7 +871,7 @@ class SentinelAPI:
                     raise SentinelAPILTAError("Unexpected response from SciHub")
 
     def _download_online_retry(
-        self, product_info, directory_path=".", checksum=True, max_attempts=10
+        self, product_info, directory_path=".", checksum=True, max_attempts=10, **kwargs
     ):
         """Thin wrapper around download with retrying and checking whether a product is online
 
@@ -890,7 +902,7 @@ class SentinelAPI:
             self.logger.info("%s is online. Starting download", product_info["id"])
             for cnt in range(max_attempts):
                 try:
-                    ret_val = self.download(product_info["id"], directory_path, checksum)
+                    ret_val = self.download(product_info["id"], directory_path, checksum, **kwargs)
                     break
                 except InvalidChecksumError as e:
                     self.logger.warning(
